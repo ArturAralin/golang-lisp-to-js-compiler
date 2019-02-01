@@ -58,6 +58,7 @@ func parseFunctionName(pos int, input string) (int, string) {
 	return pos, fnName
 }
 
+// TODO: add type matching
 func parseValue(cursorPosition int, input string) (int, *Token) {
 	fmt.Println("[START] parseValue cursorPosition=", cursorPosition)
 	currentSymbol := ""
