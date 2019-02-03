@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"parser"
 	"path/filepath"
+
+	"./src/parser"
 )
 
 func readFile(path string) string {
@@ -23,13 +24,17 @@ func absPath(s string) string {
 	return dir
 }
 
+func printChildToken(x *parser.Token) {
+	fmt.Println(x.ChildTokens[2].ChildTokens[0].ChildTokens[1])
+}
+
 func main() {
 
-	file := absPath("./code")
-
-	fmt.Println(file)
+	file := absPath("./code.fjs")
 
 	d := readFile(file)
 
-	fmt.Println(parser.Parse(file, d))
+	parser.Parse(file, d)
+
+	// fmt.Println(tr)
 }

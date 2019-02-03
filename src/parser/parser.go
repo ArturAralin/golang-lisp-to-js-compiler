@@ -2,14 +2,18 @@ package parser
 
 import (
 	"fmt"
-	"logger"
 	"os"
 	"regexp"
-	"stringstack"
+
+	"../logger"
+	"../stringstack"
 )
 
 const (
-	namespace = "parser"
+	namespace          = "parser"
+	openSpecialSymbol  = "[{\\[\\(]"
+	closeSpecialSymbol = "[}\\]\\)]"
+	functionSymbols    = "[a-z-?!]"
 )
 
 var fname string
@@ -19,7 +23,7 @@ type Token struct {
 	tokenValue  string
 	tokenType   string
 	parentToken *Token
-	childTokens []*Token
+	ChildTokens []*Token
 }
 
 func isAllowedToFnName(s string) bool {
@@ -29,69 +33,87 @@ func isAllowedToFnName(s string) bool {
 }
 
 func isSpecSymbol(s string) bool {
-	r, _ := regexp.MatchString("[\\(\\)\\[\\] ]", s)
+	r, _ := regexp.MatchString("[\\(\\)\\[\\]]", s)
 
 	return r
 }
 
-func parseFunctionName(pos int, input string) (int, string) {
+func parseExpressionName(pos int, input string) (int, string) {
 	logger.Log(fname, namespace, "[START] parseFunctionName", callDepth)
 	currentSymbol := ""
 	fnName := ""
+	// escape first symbol
+	pos = pos + 1
 
-	for currentSymbol != " " {
+	// TODO: allow only \w+ \d+ ? ! -
+	for true {
 		currentSymbol = string(input[pos])
-		logger.UpdateLineAndColumn(currentSymbol)
-		fnName = fnName + currentSymbol
 		pos = pos + 1
+		logger.UpdateLineAndColumn(currentSymbol)
+
+		if !MatchString(functionSymbols, currentSymbol) {
+			break
+		}
+
+		fnName = fnName + currentSymbol
 	}
 
-	logger.Log(fname, namespace, "[START] parseFunctionName", callDepth)
+	logger.Log(fname, namespace, "[START] parsed function name \""+fnName+"\"", callDepth)
 
 	return pos, fnName
 }
 
-func matchString(mask string, s string) bool {
-	r, _ := regexp.MatchString(mask, s)
+func getValueType(cursorPosition int, input string) string {
+	firstCharacter := string(input[cursorPosition])
 
-	return r
-}
-
-func getValueType(firstCharacter string) string {
 	switch {
-	case matchString("[\\.1234567890]", firstCharacter):
+	case MatchString(NumberMatchMask, firstCharacter):
 		return "number"
-	case matchString("\"", firstCharacter):
+	case MatchString(StringMatchMask, firstCharacter):
 		return "string"
+	case MatchString(ReservedWordsMatch, firstCharacter) && len(FindReservedWord(cursorPosition, input)) > 0:
+		return "reservedWord"
 	default:
-		logger.ThrowError("Unknown type")
+		logger.ThrowError("Unknown value type for character \"" + firstCharacter + "\"")
 	}
 
 	return ""
 }
 
-// TODO: add type matching
 func parseValue(cursorPosition int, input string) (int, *Token) {
-	// fmt.Println("[START] parseValue cursorPosition=", cursorPosition)
-	currentSymbol := ""
-	token := &Token{}
+	logger.Log(fname, namespace, "[START] parseValue", callDepth)
 
-	token.tokenType = getValueType(string(input[cursorPosition]))
+	token := &Token{tokenType: getValueType(cursorPosition, input)}
 
-	for true {
-		currentSymbol = string(input[cursorPosition])
-		logger.UpdateLineAndColumn(currentSymbol)
-
-		if isSpecSymbol(currentSymbol) {
-			break
-		}
-
-		token.tokenValue = token.tokenValue + currentSymbol
-		cursorPosition = cursorPosition + 1
+	switch token.tokenType {
+	case "number":
+		cursorPosition = ParseNumber(token, cursorPosition, input)
+	case "string":
+		cursorPosition = ParseSting(token, cursorPosition, input)
+	case "reservedWord":
+		cursorPosition = ParseReservedWords(token, cursorPosition, input)
+	default:
+		logger.ThrowError("Not found parser for type \"" + token.tokenType + "\"")
 	}
 
-	// fmt.Println("[FINISH] parseValue cursorPosition=", cursorPosition)
+	logger.Log(fname, namespace, "[FINISH] parsedValue="+token.tokenValue, callDepth)
+
 	return cursorPosition, token
+}
+
+func getType(s string) string {
+	switch s {
+	case "(":
+		return "expression"
+	case "[":
+		return "array"
+	case "{":
+		return "object"
+	default:
+		logger.ThrowError("Unknown type")
+	}
+
+	return ""
 }
 
 func Parse(fileName, input string) *Token {
@@ -103,36 +125,50 @@ func Parse(fileName, input string) *Token {
 	currentToken := &Token{tokenType: "root"}
 
 	for cursorPosition < inputLen {
+		callDepth = s.Len()
 		currentSymbol = string(input[cursorPosition])
 		logger.UpdateLineAndColumn(currentSymbol)
 
-		if currentSymbol == " " || currentSymbol == "\n" || currentSymbol == "\r" {
+		if currentSymbol == " " || currentSymbol == "," || currentSymbol == "\n" || currentSymbol == "\r" {
 			cursorPosition = cursorPosition + 1
 			continue
 		}
 
 		// start new token
-		if currentSymbol == "(" {
+		if MatchString(openSpecialSymbol, currentSymbol) {
 			// TODO: add checking previous symbol
 			// for checking syntax error
-			s = s.Push("(")
+			s = s.Push(currentSymbol)
 			newToken := &Token{
-				tokenType:   "function",
+				tokenType:   getType(currentSymbol),
 				parentToken: currentToken,
 			}
-			currentToken.childTokens = append(currentToken.childTokens, newToken)
-			currentToken = newToken
 
-			// parse tokenValue name
-			newSymbolPos, fnName := parseFunctionName(cursorPosition+1, input)
-			currentToken.tokenValue = fnName
-			cursorPosition = newSymbolPos
+			// parse name
+			if newToken.tokenType == "expression" {
+				newSymbolPos, fnName := parseExpressionName(cursorPosition, input)
+				currentToken.tokenValue = fnName
+				cursorPosition = newSymbolPos
+			}
+
+			currentToken.ChildTokens = append(currentToken.ChildTokens, newToken)
+			currentToken = newToken
+			cursorPosition = cursorPosition + 1
+
 			continue
 		}
 
 		// retrun to previous token
-		if currentSymbol == ")" {
+		if MatchString(closeSpecialSymbol, currentSymbol) {
 			s, _ = s.Pop()
+
+			// validate object
+			if currentToken.tokenType == "object" {
+				if (len(currentToken.ChildTokens) % 2) > 0 {
+					logger.ThrowError("Object must have even elements")
+				}
+			}
+
 			currentToken = currentToken.parentToken
 			cursorPosition = cursorPosition + 1
 			continue
@@ -140,12 +176,8 @@ func Parse(fileName, input string) *Token {
 
 		newCursorPosition, t := parseValue(cursorPosition, input)
 		cursorPosition = newCursorPosition
-
 		t.parentToken = currentToken
-		currentToken.childTokens = append(currentToken.childTokens, t)
-
-		// fmt.Println(currentToken, currentSymbol)
-		callDepth = s.Len()
+		currentToken.ChildTokens = append(currentToken.ChildTokens, t)
 	}
 
 	if s.Len() > 0 {
