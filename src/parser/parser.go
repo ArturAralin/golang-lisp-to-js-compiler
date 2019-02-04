@@ -20,9 +20,9 @@ var fname string
 var callDepth int
 
 type Token struct {
-	tokenValue  string
-	tokenType   string
-	parentToken *Token
+	TokenValue  string
+	TokenType   string
+	ParentToken *Token
 	ChildTokens []*Token
 }
 
@@ -83,9 +83,9 @@ func getValueType(cursorPosition int, input string) string {
 func parseValue(cursorPosition int, input string) (int, *Token) {
 	logger.Log(fname, namespace, "[START] parseValue", callDepth)
 
-	token := &Token{tokenType: getValueType(cursorPosition, input)}
+	token := &Token{TokenType: getValueType(cursorPosition, input)}
 
-	switch token.tokenType {
+	switch token.TokenType {
 	case "number":
 		cursorPosition = ParseNumber(token, cursorPosition, input)
 	case "string":
@@ -93,10 +93,10 @@ func parseValue(cursorPosition int, input string) (int, *Token) {
 	case "reservedWord":
 		cursorPosition = ParseReservedWords(token, cursorPosition, input)
 	default:
-		logger.ThrowError("Not found parser for type \"" + token.tokenType + "\"")
+		logger.ThrowError("Not found parser for type \"" + token.TokenType + "\"")
 	}
 
-	logger.Log(fname, namespace, "[FINISH] parsedValue="+token.tokenValue, callDepth)
+	logger.Log(fname, namespace, "[FINISH] parsedValue="+token.TokenValue, callDepth)
 
 	return cursorPosition, token
 }
@@ -122,7 +122,8 @@ func Parse(fileName, input string) *Token {
 	inputLen := len(input)
 	cursorPosition := 0
 	currentSymbol := ""
-	currentToken := &Token{tokenType: "root"}
+	currentToken := &Token{TokenType: "root"}
+	root := currentToken
 
 	for cursorPosition < inputLen {
 		callDepth = s.Len()
@@ -140,14 +141,14 @@ func Parse(fileName, input string) *Token {
 			// for checking syntax error
 			s = s.Push(currentSymbol)
 			newToken := &Token{
-				tokenType:   getType(currentSymbol),
-				parentToken: currentToken,
+				TokenType:   getType(currentSymbol),
+				ParentToken: currentToken,
 			}
 
 			// parse name
-			if newToken.tokenType == "expression" {
+			if newToken.TokenType == "expression" {
 				newSymbolPos, fnName := parseExpressionName(cursorPosition, input)
-				currentToken.tokenValue = fnName
+				currentToken.TokenValue = fnName
 				cursorPosition = newSymbolPos
 			}
 
@@ -163,20 +164,20 @@ func Parse(fileName, input string) *Token {
 			s, _ = s.Pop()
 
 			// validate object
-			if currentToken.tokenType == "object" {
+			if currentToken.TokenType == "object" {
 				if (len(currentToken.ChildTokens) % 2) > 0 {
 					logger.ThrowError("Object must have even elements")
 				}
 			}
 
-			currentToken = currentToken.parentToken
+			currentToken = currentToken.ParentToken
 			cursorPosition = cursorPosition + 1
 			continue
 		}
 
 		newCursorPosition, t := parseValue(cursorPosition, input)
 		cursorPosition = newCursorPosition
-		t.parentToken = currentToken
+		t.ParentToken = currentToken
 		currentToken.ChildTokens = append(currentToken.ChildTokens, t)
 	}
 
@@ -185,5 +186,5 @@ func Parse(fileName, input string) *Token {
 		os.Exit(1)
 	}
 
-	return currentToken
+	return root
 }

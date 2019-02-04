@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
+	"./src/jscompiler"
 	"./src/parser"
 )
 
@@ -29,12 +31,9 @@ func printChildToken(x *parser.Token) {
 }
 
 func main() {
+	val := os.Args[1]
 
-	file := absPath("./code.fjs")
+	ttree := parser.Parse("", val)
 
-	d := readFile(file)
-
-	parser.Parse(file, d)
-
-	// fmt.Println(tr)
+	fmt.Print(jscompiler.Compile(ttree))
 }

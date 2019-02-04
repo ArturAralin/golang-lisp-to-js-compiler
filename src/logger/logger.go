@@ -11,6 +11,8 @@ const (
 	whitespaceSymbol = "  "
 )
 
+var logEnabled = len(os.Getenv("LOG_ENABLED")) > 0
+
 var column = 1
 var line = 1
 
@@ -34,7 +36,7 @@ func ThrowError(m string) {
 
 func Log(fileName, ns, s string, callDepth int) {
 	whitespace := strings.Repeat(whitespaceSymbol, callDepth)
-	file := fileName + ":" + intToStr(line) + ":" + intToStr(column)
+	file := "" // fileName + ":" + intToStr(line) + ":" + intToStr(column)
 	t := whitespace + " [" + ns + "]" + s + " " + file
 	fmt.Println(t)
 }

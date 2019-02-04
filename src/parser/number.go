@@ -45,6 +45,6 @@ func ParseNumber(token *Token, cursorPosition int, input string) int {
 		l = l + 1
 	}
 
-	token.tokenValue = acc
+	token.TokenValue = acc
 	return cursorPosition
 }

@@ -43,7 +43,7 @@ func FindReservedWord(cursorPosition int, input string) string {
 func ParseReservedWords(token *Token, cursorPosition int, input string) int {
 	word := FindReservedWord(cursorPosition, input)
 
-	token.tokenValue = word
+	token.TokenValue = word
 
 	return cursorPosition + len(word)
 }
