@@ -16,3 +16,4 @@ bin/test-fjs-compiler
 
 # JS
 node_modules
+tests/tmp/*
