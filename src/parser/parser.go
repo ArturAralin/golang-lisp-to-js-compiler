@@ -10,20 +10,22 @@ import (
 )
 
 const (
-	namespace          = "parser"
-	openSpecialSymbol  = "[{\\[\\(]"
-	closeSpecialSymbol = "[}\\]\\)]"
-	functionSymbols    = "[a-z-?!]"
+	namespace             = "parser"
+	openSpecialSymbol     = "[{\\[\\(]"
+	closeSpecialSymbol    = "[}\\]\\)]"
+	functionSymbols       = "[a-z-?!/]"
+	contextDetachedSymbol = "'"
 )
 
 var fname string
 var callDepth int
 
 type Token struct {
-	TokenValue  string
-	TokenType   string
-	ParentToken *Token
-	ChildTokens []*Token
+	TokenValue      string
+	TokenType       string
+	ParentToken     *Token
+	ChildTokens     []*Token
+	ContextDetached bool
 }
 
 func isAllowedToFnName(s string) bool {
@@ -60,7 +62,7 @@ func parseExpressionName(pos int, input string) (int, string) {
 
 	logger.Log(fname, namespace, "[START] parsed function name \""+fnName+"\"", callDepth)
 
-	return pos, fnName
+	return pos - 1, fnName
 }
 
 func getValueType(cursorPosition int, input string) string {
@@ -122,11 +124,13 @@ func Parse(fileName, input string) *Token {
 	inputLen := len(input)
 	cursorPosition := 0
 	currentSymbol := ""
+	prevSymbol := ""
 	currentToken := &Token{TokenType: "root"}
 	root := currentToken
 
 	for cursorPosition < inputLen {
 		callDepth = s.Len()
+		prevSymbol = currentSymbol
 		currentSymbol = string(input[cursorPosition])
 		logger.UpdateLineAndColumn(currentSymbol)
 
@@ -135,20 +139,33 @@ func Parse(fileName, input string) *Token {
 			continue
 		}
 
+		// handle ctx detach symbol
+		if currentSymbol == contextDetachedSymbol {
+			cursorPosition = cursorPosition + 1
+
+			if !MatchString(openSpecialSymbol, string(input[cursorPosition])) {
+				logger.ThrowError("Unexpected context detach symbol")
+			}
+
+			continue
+		}
+
 		// start new token
 		if MatchString(openSpecialSymbol, currentSymbol) {
 			// TODO: add checking previous symbol
 			// for checking syntax error
 			s = s.Push(currentSymbol)
+
 			newToken := &Token{
-				TokenType:   getType(currentSymbol),
-				ParentToken: currentToken,
+				TokenType:       getType(currentSymbol),
+				ParentToken:     currentToken,
+				ContextDetached: currentToken.ContextDetached || prevSymbol == contextDetachedSymbol,
 			}
 
 			// parse name
 			if newToken.TokenType == "expression" {
 				newSymbolPos, fnName := parseExpressionName(cursorPosition, input)
-				currentToken.TokenValue = fnName
+				newToken.TokenValue = fnName
 				cursorPosition = newSymbolPos
 			}
 
