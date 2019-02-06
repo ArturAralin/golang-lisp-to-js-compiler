@@ -16,20 +16,29 @@ func walkTree(node *parser.Token) string {
 	tokensLen := len(node.ChildTokens)
 	if tokensLen > 0 {
 		for idx, chT := range node.ChildTokens {
-			if chT.TokenType == "expression" {
+			switch chT.TokenType {
+			case "expression":
 				acc = acc + HandleExpression(chT, walkTree(chT))
-			}
-
-			if chT.TokenType == "number" {
+			case "number":
 				acc = acc + chT.TokenValue
+			case "string":
+				acc = acc + HandleString(chT)
+			case "object":
+				acc = acc + "{" + walkTree(chT) + "}"
+			case "array":
+				acc = acc + "[" + walkTree(chT) + "]"
 			}
 
-			if chT.TokenType == "string" {
-				acc = acc + "\"" + chT.TokenValue + "\""
+			if chT.ParentToken.TokenType == "object" {
+				if idx%2 == 0 {
+					acc = acc + ": "
+				} else {
+					acc = acc + ","
+				}
 			}
 
-			if chT.TokenType == "expression" && chT.ParentToken.TokenType == "root" {
-				acc = acc + ";\n"
+			if chT.ParentToken.TokenType == "array" {
+				acc = acc + ", "
 			}
 
 			if chT.ParentToken.TokenType == "expression" && tokensLen-1 > idx {
