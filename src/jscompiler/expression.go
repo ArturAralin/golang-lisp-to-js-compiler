@@ -26,7 +26,7 @@ func HandleExpression(ex *parser.Token, args string) string {
 	acc := expressionExecuter + "(" + CtxPrefix + "." + ex.TokenValue + ", " + args + ")"
 
 	if ex.ParentToken.TokenType == "root" {
-		acc = acc + ".call(" + CtxPrefix + ")"
+		acc = acc + ".call(" + CtxPrefix + ");"
 	}
 
 	return acc
