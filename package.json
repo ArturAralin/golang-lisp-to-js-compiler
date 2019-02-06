@@ -6,7 +6,7 @@
   "scripts": {
     "go:run": "LOG_ENABLED=1 go run fjs-compiler.go",
     "go:build:test": "go build -o bin/test-fjs-compiler fjs-compiler.go",
-    "test": "rm -f tests/tmp/*.js && mocha tests/**/*.test.js"
+    "test": "npm run go:build:test && rm -Rf tests/tmp/*.js && mocha tests/**/*.test.js"
   },
   "repository": {
     "type": "git",

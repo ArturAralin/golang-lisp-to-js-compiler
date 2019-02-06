@@ -53,11 +53,27 @@ describe('Basic types', () => {
 
   it('should define a object', async () => {
     const res = await execute({}, `
-      (def "x" {})
+      (def "x" {
+        "key" "value"
+        "key2" "value2"
+      })
     `);
 
     return expect(res)
       .to.have.property('x')
-      .that.to.equals('some value');
+      .that.to.eqls({
+        key: 'value',
+        key2: 'value2',
+      });
+  });
+
+  it('should define a object', async () => {
+    const res = await execute({}, `
+      (def "x" ["a" 123 123.2 2e2 {}])
+    `);
+
+    return expect(res)
+      .to.have.property('x')
+      .that.to.eqls(['a', 123, 123.2, 200, {}]);
   });
 });
