@@ -35,8 +35,10 @@ func ThrowError(m string) {
 }
 
 func Log(fileName, ns, s string, callDepth int) {
-	whitespace := strings.Repeat(whitespaceSymbol, callDepth)
-	file := "" // fileName + ":" + intToStr(line) + ":" + intToStr(column)
-	t := whitespace + " [" + ns + "]" + s + " " + file
-	fmt.Println(t)
+	if logEnabled {
+		whitespace := strings.Repeat(whitespaceSymbol, callDepth)
+		file := "" // fileName + ":" + intToStr(line) + ":" + intToStr(column)
+		t := whitespace + " [" + ns + "]" + s + " " + file
+		fmt.Println(t)
+	}
 }
