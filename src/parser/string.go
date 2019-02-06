@@ -36,5 +36,7 @@ func ParseSting(token *Token, cursorPosition int, input string) int {
 		cursorPosition = cursorPosition + 1
 	}
 
+	token.TokenValue = acc
+
 	return cursorPosition + 1
 }
