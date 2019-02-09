@@ -9,3 +9,14 @@ func MatchString(mask string, s string) bool {
 
 	return r
 }
+
+// TODO: improve this file performance
+func MatchByte(mask string, b byte) bool {
+	l, err := regexp.MatchString(mask, string(b))
+
+	if err != nil {
+		return false
+	}
+
+	return l
+}

@@ -62,6 +62,8 @@ func getValueType(cursorPosition int, input string) string {
 	switch {
 	case firstCharacter == ".":
 		return "jsCall"
+	case firstCharacter == ":":
+		return "keyword"
 	case MatchString(ReservedWordsMatch, firstCharacter) && len(FindReservedWord(cursorPosition, input)) > 0:
 		return "reservedWord"
 	case MatchString(NumberMatchMask, firstCharacter):
@@ -85,10 +87,12 @@ func parseValue(cursorPosition int, input string) (int, *Token) {
 	switch token.TokenType {
 	case "reservedWord":
 		cursorPosition = ParseReservedWords(token, cursorPosition, input)
+	case "keyword":
+		cursorPosition = ParseKeyword(token, cursorPosition, input)
 	case "number":
 		cursorPosition = ParseNumber(token, cursorPosition, input)
 	case "string":
-		cursorPosition = ParseSting(token, cursorPosition, input)
+		cursorPosition = ParseString(token, cursorPosition, input)
 	case "symbol":
 		cursorPosition = ParseSymbol(token, cursorPosition, input)
 	case "jsCall":
