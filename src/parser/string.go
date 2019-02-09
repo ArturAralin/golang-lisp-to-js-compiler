@@ -6,7 +6,7 @@ const (
 	endStringSymbol = "\""
 )
 
-func ParseSting(token *Token, cursorPosition int, input string) int {
+func ParseString(token *Token, cursorPosition int, input string) int {
 	currentSymbol := ""
 	l := 0
 	isHaveEscapeSymbol := false
