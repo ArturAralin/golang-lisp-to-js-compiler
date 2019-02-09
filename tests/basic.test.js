@@ -123,4 +123,10 @@ describe('Basic types', () => {
       .to.have.property('x')
       .that.to.equals(false);
   });
+
+  it('should define a symbol', async () => {
+    const res = await execute({}, '(def "x" :test-keyword)');
+
+    return expect(res.x.toString()).to.equal('Symbol(:test-keyword)');
+  });
 });
