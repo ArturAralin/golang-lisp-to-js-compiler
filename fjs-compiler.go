@@ -26,10 +26,6 @@ func absPath(s string) string {
 	return dir
 }
 
-func printChildToken(x *parser.Token) {
-	fmt.Println(x.ChildTokens[2].ChildTokens[0].ChildTokens[1])
-}
-
 func main() {
 	val := os.Args[1]
 

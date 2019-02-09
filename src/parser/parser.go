@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 
@@ -196,7 +195,7 @@ func Parse(fileName, input string) *Token {
 	}
 
 	if s.Len() > 0 {
-		fmt.Println("Syntax error")
+		logger.ThrowError("Syntax error")
 		os.Exit(1)
 	}
 

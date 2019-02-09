@@ -52,10 +52,6 @@ func walkTree(node *parser.Token, depth int) string {
 				}
 			}
 
-			if chT.TokenType == "jsCall" {
-				fmt.Println(chT)
-			}
-
 			if (chT.ParentToken.TokenType == "expression" ||
 				chT.ParentToken.TokenType == "array") && tokensLen-1 > idx {
 				acc = acc + ", "
