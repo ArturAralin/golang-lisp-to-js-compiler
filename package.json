@@ -6,7 +6,8 @@
   "scripts": {
     "go:run": "LOG_ENABLED=1 go run fjs-compiler.go",
     "go:build:test": "go build -o bin/test-fjs-compiler fjs-compiler.go",
-    "test": "npm run go:build:test && rm -Rf tests/tmp/*.js && mocha tests/**/*.test.js"
+    "test:file": "npm run go:build:test && rm -Rf tests/tmp/*.js && mocha",
+    "test": "npm run test:file tests/**/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
   "homepage": "https://github.com/ArturAralin/golang-lisp-to-js-compiler#readme",
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "eslint": "^5.13.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
