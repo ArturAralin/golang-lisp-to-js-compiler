@@ -1,7 +1,7 @@
 package jscompiler
 
 import (
-	"fmt"
+	"strings"
 
 	"../parser"
 )
@@ -39,6 +39,8 @@ func walkTree(node *parser.Token, depth int) string {
 				acc = acc + "[" + walkTree(chT, depth+1) + "]"
 			case "symbol":
 				acc = acc + "symbol('" + chT.TokenValue + "')"
+			case "keyword":
+				acc = acc + "keyword('" + chT.TokenValue + "')"
 			}
 
 			if chT.TokenType != "jsCall" &&
@@ -66,23 +68,31 @@ func walkTree(node *parser.Token, depth int) string {
 }
 
 func Compile(root *parser.Token) string {
-	header := "const __core = require(\"fjs-compiler/lib/core/core.js\");\n" +
-		"const " + CtxPrefix + " = {...__core};\n" +
-		CtxPrefix + ".ROOT = " + CtxPrefix + ";\n" +
-		"const symbol = __core.$;\n" +
-		"const E = __core[symbol('E')];\n"
+	var js strings.Builder
 
-	if isTestMode {
-		header = header + "exports.CTX = " + CtxPrefix + ";\n"
-	}
-
-	header = header + "\n"
+	js.WriteString("var __core = require(\"fjs-compiler/lib/core/core.js\");\n")
+	js.WriteString("var ")
+	js.WriteString(CtxPrefix)
+	js.WriteString(" = Object.assign({}, __core);\n")
+	js.WriteString(CtxPrefix)
+	js.WriteString(".ROOT = ")
+	js.WriteString(CtxPrefix)
+	js.WriteString(";\n")
+	js.WriteString("var symbol = __core.$;\n")
+	js.WriteString("var E = __core[symbol('E')];\n")
+	js.WriteString("var keyword = __core[symbol('keyword')];\n")
+	js.WriteString("\n")
 
 	code := walkTree(root, 0)
 
-	fmt.Println(header + code)
+	js.WriteString(code)
 
-	return ""
+	if isTestMode {
+		js.WriteString("\n\n// this export added by compiler\n")
+		js.WriteString("exports.CTX = ")
+		js.WriteString(CtxPrefix)
+		js.WriteString(";\n")
+	}
+
+	return js.String()
 }
-
-// expression -> function
