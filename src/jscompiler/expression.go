@@ -19,11 +19,15 @@ func handleExpressionName(name string) string {
 		acc = acc + "[\"" + part + "\"]"
 	}
 
-	return CtxPrefix + acc
+	return acc
 }
 
-func HandleExpression(ex *parser.Token, args string) string {
-	acc := expressionExecuter + "(" + CtxPrefix + "." + ex.TokenValue + ", " + args + ")"
+func generateWhitespace(l int) string {
+	return strings.Repeat("  ", l)
+}
+
+func HandleExpression(ex *parser.Token, args string, depth int) string {
+	acc := "\n" + generateWhitespace(depth) + expressionExecuter + "(" + CtxPrefix + handleExpressionName(ex.TokenValue) + ", " + args + ")"
 
 	if ex.ParentToken.TokenType == "root" {
 		acc = acc + ".call(" + CtxPrefix + ");"
