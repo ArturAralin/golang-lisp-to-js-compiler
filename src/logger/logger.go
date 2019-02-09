@@ -37,8 +37,7 @@ func ThrowError(m string) {
 func Log(fileName, ns, s string, callDepth int) {
 	if logEnabled {
 		whitespace := strings.Repeat(whitespaceSymbol, callDepth)
-		file := "" // fileName + ":" + intToStr(line) + ":" + intToStr(Column)
-		t := whitespace + " [" + ns + "]" + s + " " + file
+		t := whitespace + "// [" + ns + "]" + s
 		fmt.Println(t)
 	}
 }
