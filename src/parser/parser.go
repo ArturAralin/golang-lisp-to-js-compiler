@@ -61,6 +61,8 @@ func getValueType(cursorPosition int, input string) string {
 	firstCharacter := string(input[cursorPosition])
 
 	switch {
+	case firstCharacter == ".":
+		return "jsCall"
 	case MatchString(NumberMatchMask, firstCharacter):
 		return "number"
 	case MatchString(StringMatchMask, firstCharacter):
@@ -90,6 +92,8 @@ func parseValue(cursorPosition int, input string) (int, *Token) {
 		cursorPosition = ParseReservedWords(token, cursorPosition, input)
 	case "symbol":
 		cursorPosition = ParseSymbol(token, cursorPosition, input)
+	case "jsCall":
+		cursorPosition = ParseJSCall(token, cursorPosition, input)
 	default:
 		logger.ThrowError("Not found parser for type \"" + token.TokenType + "\"")
 	}

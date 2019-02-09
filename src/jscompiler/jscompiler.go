@@ -16,7 +16,9 @@ func walkTree(node *parser.Token, depth int) string {
 	tokensLen := len(node.ChildTokens)
 	if tokensLen > 0 {
 		for idx, chT := range node.ChildTokens {
-			if chT.ParentToken.TokenType == "expression" && idx == 0 {
+			if chT.TokenType != "jsCall" &&
+				chT.ParentToken.TokenType == "expression" &&
+				idx == 0 {
 				acc = acc + "F["
 			}
 
@@ -24,6 +26,7 @@ func walkTree(node *parser.Token, depth int) string {
 			case "expression":
 				acc = acc + HandleExpression(chT, walkTree(chT, depth+1), depth)
 			case "number":
+			case "jsCall":
 				acc = acc + chT.TokenValue
 			case "string":
 				acc = acc + HandleString(chT)
@@ -35,7 +38,9 @@ func walkTree(node *parser.Token, depth int) string {
 				acc = acc + "symbol('" + chT.TokenValue + "')"
 			}
 
-			if chT.ParentToken.TokenType == "expression" && idx == 0 {
+			if chT.TokenType != "jsCall" &&
+				chT.ParentToken.TokenType == "expression" &&
+				idx == 0 {
 				acc = acc + "]"
 			}
 
@@ -45,6 +50,10 @@ func walkTree(node *parser.Token, depth int) string {
 				} else {
 					acc = acc + ","
 				}
+			}
+
+			if chT.TokenType == "jsCall" {
+				fmt.Println(chT)
 			}
 
 			if (chT.ParentToken.TokenType == "expression" ||
