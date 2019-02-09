@@ -76,4 +76,51 @@ describe('Basic types', () => {
       .to.have.property('x')
       .that.to.eqls(['a', 123, 123.2, 200, {}]);
   });
+
+  it('should define a nil', async () => {
+    const res = await execute({}, '(def "x" nil)');
+
+    return expect(res)
+      .to.have.property('x')
+      .that.to.equals(null);
+  });
+
+  it('should define a true', async () => {
+    const res = await execute({}, '(def "x" true)');
+
+    return expect(res)
+      .to.have.property('x')
+      .that.to.equals(true);
+  });
+
+  it('should define a true', async () => {
+    const res = await execute({}, '(def "x" NaN)');
+
+    // eslint-disable-next-line no-restricted-globals
+    return expect(isNaN(res.x)).to.be.true;
+  });
+
+  it('should define a Infinity', async () => {
+    const res = await execute({}, '(def "x" Infinity)');
+
+    return expect(res)
+      .to.have.property('x')
+      .that.to.equals(Infinity);
+  });
+
+  it('should define a -Infinity', async () => {
+    const res = await execute({}, '(def "x" -Infinity)');
+
+    return expect(res)
+      .to.have.property('x')
+      .that.to.equals(-Infinity);
+  });
+
+  it('should define a false', async () => {
+    const res = await execute({}, '(def "x" false)');
+
+    return expect(res)
+      .to.have.property('x')
+      .that.to.equals(false);
+  });
 });

@@ -23,6 +23,8 @@ func walkTree(node *parser.Token, depth int) string {
 			}
 
 			switch chT.TokenType {
+			case "reservedWord":
+				acc = acc + HandleReservedWord(chT)
 			case "expression":
 				acc = acc + HandleExpression(chT, walkTree(chT, depth+1), depth)
 			case "number":

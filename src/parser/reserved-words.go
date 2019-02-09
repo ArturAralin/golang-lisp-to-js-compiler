@@ -1,7 +1,7 @@
 package parser
 
 const (
-	ReservedWordsMatch = "[ntf]"
+	ReservedWordsMatch = "[\\-ntfNI]"
 )
 
 func checkWord(word string, cursorPosition int, input string) bool {
@@ -34,6 +34,24 @@ func FindReservedWord(cursorPosition int, input string) string {
 	if firstCharacter == "n" {
 		if checkWord("nil", cursorPosition, input) {
 			return "nil"
+		}
+	}
+
+	if firstCharacter == "N" {
+		if checkWord("NaN", cursorPosition, input) {
+			return "NaN"
+		}
+	}
+
+	if firstCharacter == "I" {
+		if checkWord("Infinity", cursorPosition, input) {
+			return "Infinity"
+		}
+	}
+
+	if firstCharacter == "-" {
+		if checkWord("-Infinity", cursorPosition, input) {
+			return "-Infinity"
 		}
 	}
 
