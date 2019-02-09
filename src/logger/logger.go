@@ -13,7 +13,7 @@ const (
 
 var logEnabled = len(os.Getenv("LOG_ENABLED")) > 0
 
-var column = 1
+var Column = 1
 var line = 1
 
 func intToStr(v int) string {
@@ -21,23 +21,23 @@ func intToStr(v int) string {
 }
 
 func UpdateLineAndColumn(s string) {
-	column = column + 1
+	Column = Column + 1
 
 	if s == "\n" {
-		column = 0
+		Column = 0
 		line = line + 1
 	}
 }
 
 func ThrowError(m string) {
-	fmt.Printf("%s:%s %s\n", intToStr(line), intToStr(column), m)
+	fmt.Printf("%s:%s %s\n", intToStr(line), intToStr(Column), m)
 	os.Exit(1)
 }
 
 func Log(fileName, ns, s string, callDepth int) {
 	if logEnabled {
 		whitespace := strings.Repeat(whitespaceSymbol, callDepth)
-		file := "" // fileName + ":" + intToStr(line) + ":" + intToStr(column)
+		file := "" // fileName + ":" + intToStr(line) + ":" + intToStr(Column)
 		t := whitespace + " [" + ns + "]" + s + " " + file
 		fmt.Println(t)
 	}
