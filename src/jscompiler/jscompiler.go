@@ -26,6 +26,7 @@ func walkTree(node *parser.Token, depth int) string {
 			case "expression":
 				acc = acc + HandleExpression(chT, walkTree(chT, depth+1), depth)
 			case "number":
+				acc = acc + chT.TokenValue
 			case "jsCall":
 				acc = acc + chT.TokenValue
 			case "string":
