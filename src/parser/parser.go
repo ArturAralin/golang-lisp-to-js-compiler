@@ -13,7 +13,6 @@ const (
 	namespace             = "parser"
 	openSpecialSymbol     = "[{\\[\\(]"
 	closeSpecialSymbol    = "[}\\]\\)]"
-	functionSymbols       = "[a-z-?!/]"
 	contextDetachedSymbol = "'"
 )
 
@@ -28,12 +27,6 @@ type Token struct {
 	ContextDetached bool
 }
 
-func isAllowedToFnName(s string) bool {
-	r, _ := regexp.MatchString("([-a-z])", s)
-
-	return r
-}
-
 func isSpecSymbol(s string) bool {
 	r, _ := regexp.MatchString("[\\(\\)\\[\\]]", s)
 
@@ -44,16 +37,15 @@ func parseExpressionName(pos int, input string) (int, string) {
 	logger.Log(fname, namespace, "[START] parseFunctionName", callDepth)
 	currentSymbol := ""
 	fnName := ""
-	// escape first symbol
+	// escape first symbol (
 	pos = pos + 1
 
-	// TODO: allow only \w+ \d+ ? ! -
 	for true {
 		currentSymbol = string(input[pos])
 		pos = pos + 1
 		logger.UpdateLineAndColumn(currentSymbol)
 
-		if !MatchString(functionSymbols, currentSymbol) {
+		if !MatchString(SymbolSymbols, currentSymbol) {
 			break
 		}
 
@@ -75,6 +67,8 @@ func getValueType(cursorPosition int, input string) string {
 		return "string"
 	case MatchString(ReservedWordsMatch, firstCharacter) && len(FindReservedWord(cursorPosition, input)) > 0:
 		return "reservedWord"
+	case MatchString(SymbolSymbols, firstCharacter):
+		return "symbol"
 	default:
 		logger.ThrowError("Unknown value type for character \"" + firstCharacter + "\"")
 	}
@@ -94,6 +88,8 @@ func parseValue(cursorPosition int, input string) (int, *Token) {
 		cursorPosition = ParseSting(token, cursorPosition, input)
 	case "reservedWord":
 		cursorPosition = ParseReservedWords(token, cursorPosition, input)
+	case "symbol":
+		cursorPosition = ParseSymbol(token, cursorPosition, input)
 	default:
 		logger.ThrowError("Not found parser for type \"" + token.TokenType + "\"")
 	}
@@ -112,10 +108,8 @@ func getType(s string) string {
 	case "{":
 		return "object"
 	default:
-		logger.ThrowError("Unknown type")
+		return "symbol"
 	}
-
-	return ""
 }
 
 func Parse(fileName, input string) *Token {

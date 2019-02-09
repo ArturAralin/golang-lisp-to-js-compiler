@@ -11,22 +11,24 @@ const (
 	isTestMode = true
 )
 
-func walkTree(node *parser.Token) string {
+func walkTree(node *parser.Token, depth int) string {
 	acc := ""
 	tokensLen := len(node.ChildTokens)
 	if tokensLen > 0 {
 		for idx, chT := range node.ChildTokens {
 			switch chT.TokenType {
 			case "expression":
-				acc = acc + HandleExpression(chT, walkTree(chT))
+				acc = acc + HandleExpression(chT, walkTree(chT, depth+1), depth)
 			case "number":
 				acc = acc + chT.TokenValue
 			case "string":
 				acc = acc + HandleString(chT)
 			case "object":
-				acc = acc + "{" + walkTree(chT) + "}"
+				acc = acc + "{" + walkTree(chT, depth+1) + "}"
 			case "array":
-				acc = acc + "[" + walkTree(chT) + "]"
+				acc = acc + "[" + walkTree(chT, depth+1) + "]"
+			case "symbol":
+				acc = acc + "symbol('" + chT.TokenValue + "')"
 			}
 
 			if chT.ParentToken.TokenType == "object" {
@@ -37,11 +39,8 @@ func walkTree(node *parser.Token) string {
 				}
 			}
 
-			if chT.ParentToken.TokenType == "array" {
-				acc = acc + ", "
-			}
-
-			if chT.ParentToken.TokenType == "expression" && tokensLen-1 > idx {
+			if (chT.ParentToken.TokenType == "expression" ||
+				chT.ParentToken.TokenType == "array") && tokensLen-1 > idx {
 				acc = acc + ", "
 			}
 		}
@@ -53,7 +52,9 @@ func walkTree(node *parser.Token) string {
 func Compile(root *parser.Token) string {
 	header := "const __core = require(\"fjs-compiler/lib/core/core.js\");\n" +
 		"const " + CtxPrefix + " = {...__core};\n" +
-		"const E = __core.E;\n"
+		CtxPrefix + ".ROOT = " + CtxPrefix + ";\n" +
+		"const E = __core.E;\n" +
+		"const symbol = __core.symbol;\n"
 
 	if isTestMode {
 		header = header + "exports.CTX = " + CtxPrefix + ";\n"
@@ -61,7 +62,7 @@ func Compile(root *parser.Token) string {
 
 	header = header + "\n"
 
-	code := walkTree(root)
+	code := walkTree(root, 0)
 
 	fmt.Println(header + code)
 
