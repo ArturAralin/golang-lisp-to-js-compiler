@@ -156,13 +156,6 @@ func Parse(fileName, input string) *Token {
 				ContextDetached: currentToken.ContextDetached || prevSymbol == contextDetachedSymbol,
 			}
 
-			// parse name
-			if newToken.TokenType == "expression" {
-				newSymbolPos, fnName := parseExpressionName(cursorPosition, input)
-				newToken.TokenValue = fnName
-				cursorPosition = newSymbolPos
-			}
-
 			currentToken.ChildTokens = append(currentToken.ChildTokens, newToken)
 			currentToken = newToken
 			cursorPosition = cursorPosition + 1
@@ -173,6 +166,12 @@ func Parse(fileName, input string) *Token {
 		// retrun to previous token
 		if MatchString(closeSpecialSymbol, currentSymbol) {
 			s, _ = s.Pop()
+
+			// validate expressions
+			if currentToken.TokenType == "expression" &&
+				len(currentToken.ChildTokens) == 0 {
+				logger.ThrowError("Expression must have greater or equals one child")
+			}
 
 			// validate object
 			if currentToken.TokenType == "object" {
