@@ -55,17 +55,35 @@ describe('(fn [args] (body))', () => {
       .that.eqls([10, 20, 30, [10, 20]]);
   });
 
-  it.skip('should return processed object', async () => {
+  it('should return processed object', async () => {
     const res = await execute({}, `
       (def get-array (fn [x y] {
         "a" x
         "b" y
+        "c" {
+          "d" y
+        }
       }))
       (def "result" (get-array 10 20))
     `);
 
     return expect(res.result)
+      .to.be.a('object')
+      .that.eqls({ a: 10, b: 20, c: { d: 20 } });
+  });
+
+  it('should call function into array', async () => {
+    const res = await execute({}, `
+      (def "result" [
+        (add 1 2)
+        {
+          "k" (add 3 2 1)
+        }
+      ])
+    `);
+
+    return expect(res.result)
       .to.be.a('array')
-      .that.eqls([10, 20, 30, [10, 20]]);
+      .that.eqls([3, { k: 6 }]);
   });
 });
