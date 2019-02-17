@@ -38,4 +38,34 @@ describe('(fn [args] (body))', () => {
       .to.be.a('number')
       .that.to.equals(9);
   });
+
+  it('should return processed array', async () => {
+    const res = await execute({}, `
+      (def get-array (fn [x y] [
+        x
+        y
+        30
+        [x y]
+      ]))
+      (def "result" (get-array 10 20))
+    `);
+
+    return expect(res.result)
+      .to.be.a('array')
+      .that.eqls([10, 20, 30, [10, 20]]);
+  });
+
+  it.skip('should return processed object', async () => {
+    const res = await execute({}, `
+      (def get-array (fn [x y] {
+        "a" x
+        "b" y
+      }))
+      (def "result" (get-array 10 20))
+    `);
+
+    return expect(res.result)
+      .to.be.a('array')
+      .that.eqls([10, 20, 30, [10, 20]]);
+  });
 });
